@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <style name="DialogAnimationSlideUpSlideDown">
+        <item name="android:windowEnterAnimation">@anim/slide_up</item>
+        <item name="android:windowExitAnimation">@anim/slide_down</item>
+    </style>
+
+    <style name="CustomShapeAppearanceBottomSheetDialog" parent="Widget.Design.BottomSheet.Modal">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopRight">16dp</item>
+        <item name="cornerSizeTopLeft">16dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="android:background">#FF6600</item>
+    </style>
+
+
+<!--    <style name="BottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">-->
+<!--        <item name="android:background">@drawable/rounded_corner</item>-->
+<!--    </style>-->
+
+    <style name="BottomSheetDialogStyle" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/CustomShapeAppearanceBottomSheetDialog</item>
+    </style>
+
+    <style name="bottomSheetBackground" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/rounded_corner</item>
+    </style>
+
+
+    <style name="CornerCut" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">20dp</item>
+<!--        <item name="cornerFamilyTopLeft">rounded</item>-->
+<!--        <item name="cornerFamilyTopRight">cut</item>-->
+<!--        <item name="cornerFamilyBottomLeft">cut</item>-->
+<!--        <item name="cornerFamilyBottomRight">rounded</item>-->
+<!--        <item name="cornerSizeTopLeft">50%</item>-->
+<!--        <item name="cornerSizeTopRight">25%</item>-->
+<!--        <item name="cornerSizeBottomLeft">25%</item>-->
+<!--        <item name="cornerSizeBottomRight">50%</item>-->
+
+    </style>
+
+</resources>
