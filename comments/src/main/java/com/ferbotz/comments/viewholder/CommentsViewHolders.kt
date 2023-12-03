@@ -1,5 +1,7 @@
 package com.ferbotz.comments.viewholder
 
+import android.os.SystemClock
+import android.view.View
 import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -12,7 +14,10 @@ import com.ferbotz.comments.databinding.GifCommentLayoutBinding
 import com.ferbotz.comments.databinding.TextCommentLayoutBinding
 import com.ferbotz.comments.modals.Comment
 import com.ferbotz.comments.modals.UserActionData
+import com.ferbotz.comments.utils.DoubleClickListener
 import com.ferbotz.comments.utils.ScreenUtils.logVasi
+import com.ferbotz.comments.utils.Utils
+import com.ferbotz.comments.utils.setOnDoubleClickListener
 
 class TextCommentViewHolder(val binding: TextCommentLayoutBinding, val userAction:(UserActionData) -> Unit): RecyclerView.ViewHolder(binding.root) {
 
@@ -26,6 +31,7 @@ class TextCommentViewHolder(val binding: TextCommentLayoutBinding, val userActio
         binding.apply {
             commentTextTv.text = textComment.commentText
             profileNameTv.text = textComment.user.userName
+            whenTv.text = Utils.formatTime(System.currentTimeMillis() - textComment.timestamp.toLong())
             repliesRv.adapter = repliesAdapter
             repliesRv.layoutManager = LinearLayoutManager(binding.root.context)
             repliesAdapter.submitList(textComment.replies)
@@ -35,8 +41,14 @@ class TextCommentViewHolder(val binding: TextCommentLayoutBinding, val userActio
             }
             else{
                 binding.likeIv.setImageDrawable(ResourcesCompat.getDrawable(binding.root.resources, R.drawable.unliked_icon, null))
-
             }
+            repliesRv.visibility = if (textComment.totalRepliesCount > 2) View.GONE else View.VISIBLE
+            viewRepliesLay.visibility = if (textComment.totalRepliesCount > 2) View.VISIBLE else View.GONE
+
+
+
+
+
             replyTv.setOnClickListener {
                 userAction(
                     UserActionData.ReplyActionData(
@@ -45,16 +57,46 @@ class TextCommentViewHolder(val binding: TextCommentLayoutBinding, val userActio
                     )
                 )
             }
-            likeIv.setOnClickListener {
-                "like iv clicked".logVasi()
+            root.setOnDoubleClickListener {
+                textComment.isCurrentUserLiked = !textComment.isCurrentUserLiked
+                if (textComment.isCurrentUserLiked){
+                    binding.likeIv.setImageDrawable(ResourcesCompat.getDrawable(binding.root.resources, R.drawable.liked_icon, null))
+                    textComment.likes += 1
+                    binding.likeCountTv.text = textComment.likes.toString()
+                }
+                else{
+                    binding.likeIv.setImageDrawable(ResourcesCompat.getDrawable(binding.root.resources, R.drawable.unliked_icon, null))
+                    textComment.likes -= 1
+                    binding.likeCountTv.text = textComment.likes.toString()
+                }
                 userAction(
                     UserActionData.LikeCommentActionData(
-                        !textComment.isCurrentUserLiked,
-                        textComment.copy(isCurrentUserLiked = !textComment.isCurrentUserLiked)
+                        textComment.isCurrentUserLiked,
+                        textComment
                     )
                 )
             }
 
+            likeIv.setOnClickListener {
+                "like iv clicked".logVasi()
+                textComment.isCurrentUserLiked = !textComment.isCurrentUserLiked
+                if (textComment.isCurrentUserLiked){
+                    binding.likeIv.setImageDrawable(ResourcesCompat.getDrawable(binding.root.resources, R.drawable.liked_icon, null))
+                    textComment.likes += 1
+                    binding.likeCountTv.text = textComment.likes.toString()
+                }
+                else{
+                    binding.likeIv.setImageDrawable(ResourcesCompat.getDrawable(binding.root.resources, R.drawable.unliked_icon, null))
+                    textComment.likes -= 1
+                    binding.likeCountTv.text = textComment.likes.toString()
+                }
+                userAction(
+                    UserActionData.LikeCommentActionData(
+                        textComment.isCurrentUserLiked,
+                        textComment
+                    )
+                )
+            }
         }
     }
 }

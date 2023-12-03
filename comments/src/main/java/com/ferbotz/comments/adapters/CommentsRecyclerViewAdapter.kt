@@ -13,6 +13,7 @@ import com.ferbotz.comments.modals.Comment
 import com.ferbotz.comments.modals.CommentsAdapterViewHolderDataTypes
 import com.ferbotz.comments.modals.UserActionData
 import com.ferbotz.comments.utils.JsonUtils
+import com.ferbotz.comments.utils.ScreenUtils.logVasi
 import com.ferbotz.comments.viewholder.EmptyViewHolder
 import com.ferbotz.comments.viewholder.GifCommentViewHolder
 import com.ferbotz.comments.viewholder.TextCommentViewHolder
@@ -166,30 +167,32 @@ class CommentsDiffUtil: DiffUtil.ItemCallback<CommentsAdapterViewHolderDataTypes
     }
 
     override fun areContentsTheSame(oldItem: CommentsAdapterViewHolderDataTypes, newItem: CommentsAdapterViewHolderDataTypes): Boolean {
-        return when(oldItem){
-            is CommentsAdapterViewHolderDataTypes.EmptyView ->{
-                when(newItem){
-                    is CommentsAdapterViewHolderDataTypes.EmptyView ->{
+        return when (oldItem) {
+            is CommentsAdapterViewHolderDataTypes.EmptyView -> {
+                when (newItem) {
+                    is CommentsAdapterViewHolderDataTypes.EmptyView -> {
                         JsonUtils.jsonify(oldItem) == JsonUtils.jsonify(newItem)
                     }
-                    is CommentsAdapterViewHolderDataTypes.CommentView->{
+                    is CommentsAdapterViewHolderDataTypes.CommentView -> {
                         false
                     }
                 }
             }
-            is CommentsAdapterViewHolderDataTypes.CommentView ->{
-                when(oldItem.commentData){
-                    is Comment.TextComment ->{
-                        when(newItem){
-                            is CommentsAdapterViewHolderDataTypes.EmptyView ->{
+            is CommentsAdapterViewHolderDataTypes.CommentView -> {
+                when (oldItem.commentData) {
+                    is Comment.TextComment -> {
+                        when (newItem) {
+                            is CommentsAdapterViewHolderDataTypes.EmptyView -> {
                                 false
                             }
-                            is CommentsAdapterViewHolderDataTypes.CommentView->{
-                                when(newItem.commentData){
-                                    is Comment.TextComment->{
+                            is CommentsAdapterViewHolderDataTypes.CommentView -> {
+                                when (newItem.commentData) {
+                                    is Comment.TextComment -> {
+//                                        oldItem.hashCode() == newItem.hashCode()
+                                        "diff util...${oldItem.hashCode()}...${newItem.hashCode()}".logVasi()
                                         oldItem.commentData.commentId == newItem.commentData.commentId && oldItem.commentData.totalRepliesCount == newItem.commentData.totalRepliesCount && oldItem.commentData.replies.size == newItem.commentData.replies.size
                                     }
-                                    is Comment.GifComment ->{
+                                    is Comment.GifComment -> {
                                         oldItem.commentData.commentId == newItem.commentData.commentId && oldItem.commentData.totalRepliesCount == newItem.commentData.totalRepliesCount && oldItem.commentData.replies.size == newItem.commentData.replies.size
                                     }
                                 }
@@ -197,16 +200,16 @@ class CommentsDiffUtil: DiffUtil.ItemCallback<CommentsAdapterViewHolderDataTypes
                         }
                     }
                     is Comment.GifComment -> {
-                        when(newItem){
-                            is CommentsAdapterViewHolderDataTypes.EmptyView ->{
+                        when (newItem) {
+                            is CommentsAdapterViewHolderDataTypes.EmptyView -> {
                                 false
                             }
-                            is CommentsAdapterViewHolderDataTypes.CommentView->{
-                                when(newItem.commentData){
-                                    is Comment.TextComment->{
+                            is CommentsAdapterViewHolderDataTypes.CommentView -> {
+                                when (newItem.commentData) {
+                                    is Comment.TextComment -> {
                                         oldItem.commentData.commentId == newItem.commentData.commentId && oldItem.commentData.totalRepliesCount == newItem.commentData.totalRepliesCount && oldItem.commentData.replies.size == newItem.commentData.replies.size
                                     }
-                                    is Comment.GifComment ->{
+                                    is Comment.GifComment -> {
                                         oldItem.commentData.commentId == newItem.commentData.commentId && oldItem.commentData.totalRepliesCount == newItem.commentData.totalRepliesCount && oldItem.commentData.replies.size == newItem.commentData.replies.size
                                     }
                                 }

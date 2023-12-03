@@ -1,7 +1,14 @@
 package com.ferbotz.comments.utils
 
 import android.util.Log
+import android.view.View
 
-fun String.logv(){
-    Log.v("Vasi testing",this)
+fun String.testingLog(){
+    Log.v("comments logging",this)
+}
+
+fun View.setOnDoubleClickListener( onDoubleClick: () -> Unit){
+    this.setOnClickListener(
+        DoubleClickListener(onDoubleClick)
+    )
 }

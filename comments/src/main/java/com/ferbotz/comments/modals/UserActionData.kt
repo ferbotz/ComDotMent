@@ -6,6 +6,6 @@ sealed class UserActionData{
 
     data class LikeCommentActionData(val isLiked: Boolean, val comment: Comment): UserActionData()
 
-    data class LikeReplyActionData(val replyId: String): UserActionData()
+    data class LikeReplyActionData(val isLiked: Boolean, val reply: Reply): UserActionData()
 
 }

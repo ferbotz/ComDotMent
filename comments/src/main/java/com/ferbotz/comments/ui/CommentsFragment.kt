@@ -11,10 +11,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.ferbotz.comments.adapters.CommentsRecyclerViewAdapter
+import com.ferbotz.comments.custom_views.CommentsView
 import com.ferbotz.comments.databinding.FragmentCommentsBinding
 import com.ferbotz.comments.modals.UserActionData
 import com.ferbotz.comments.utils.ScreenUtils
@@ -22,6 +25,7 @@ import com.ferbotz.comments.utils.ScreenUtils.logVasi
 import com.ferbotz.comments.utils.SwipeItemViewHelper
 import com.ferbotz.comments.viewmodals.CommentViewModelFactory
 import com.ferbotz.comments.viewmodals.CommentsViewModel
+import com.ferbotz.comments.viewmodals.chuma
 
 class CommentsFragment : Fragment() {
 
@@ -44,12 +48,18 @@ class CommentsFragment : Fragment() {
                 }
                 is UserActionData.LikeCommentActionData -> {
                     "like action triggered...${userActionData.isLiked}".logVasi()
+                    "inside rec view frag..item hash...${userActionData.comment.hashCode()}".logVasi()
                     commentsViewModel.likeComment(
                         isLiked = userActionData.isLiked,
                         comment = userActionData.comment
                     )
                 }
-                is UserActionData.LikeReplyActionData -> TODO()
+                is UserActionData.LikeReplyActionData -> {
+                    commentsViewModel.likeReply(
+                        isLiked = userActionData.isLiked,
+                        reply = userActionData.reply
+                    )
+                }
             }
         }
     )
@@ -63,14 +73,12 @@ class CommentsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentCommentsBinding.inflate(inflater, container, false)
-        commentsViewModel = ViewModelProvider(this.requireActivity(), CommentViewModelFactory())[CommentsViewModel::class.java]
-        commentsViewModel.commentsViewAttribute.attributeInstructions.emptyViewOffset?.let {offset-> commentsViewModel.addEmptyViewsWithOffset(offset) }
+        commentsViewModel = ViewModelProvider(requireActivity(), CommentViewModelFactory( chuma.repo!! ))[CommentsViewModel::class.java]
         ViewCompat.setOnReceiveContentListener(
             binding.commentEt,
             MIME_TYPES
         ) { view, payload ->
             val split = payload.partition { item: ClipData.Item -> item.uri != null }
-            val uriContent = split.first
             val remaining = split.second
             val clipData: ClipData = payload.clip
             if (clipData.itemCount > 0) {
@@ -120,9 +128,11 @@ class CommentsFragment : Fragment() {
             val itemTouchHelper = ItemTouchHelper(SwipeItemViewHelper(commentsAdapter, commentsRecyclerView))
             itemTouchHelper.attachToRecyclerView(commentsRecyclerView)
 
-            commentsViewModel.commentDataList.observe(viewLifecycleOwner){
-                "new comments list submitted".logVasi()
-                commentsAdapter.submitList(it)
+            lifecycleScope.launchWhenResumed {
+                commentsViewModel.commentDataList.collect{
+                    "new comments list submitted".logVasi()
+                    commentsAdapter.submitList(it)
+                }
             }
 
             commentEt.setOnFocusChangeListener { _, hasFocus ->

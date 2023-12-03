@@ -9,6 +9,7 @@ import com.ferbotz.comments.databinding.GifReplyLayoutBinding
 import com.ferbotz.comments.databinding.TextReplyLayoutBinding
 import com.ferbotz.comments.modals.Reply
 import com.ferbotz.comments.modals.UserActionData
+import com.ferbotz.comments.utils.ScreenUtils.logVasi
 import com.ferbotz.comments.viewholder.GifReplyViewHolder
 import com.ferbotz.comments.viewholder.TextReplyViewHolder
 
@@ -78,7 +79,8 @@ class ReplyDiffUtil: DiffUtil.ItemCallback<Reply>() {
     }
 
     override fun areContentsTheSame(oldItem: Reply, newItem: Reply): Boolean {
-        return oldItem == newItem
+        "old item liked...${oldItem.isCurrentUserLiked}....newitem liked...${newItem.isCurrentUserLiked}".logVasi()
+        return oldItem.hashCode() == newItem.hashCode()
     }
 
 }

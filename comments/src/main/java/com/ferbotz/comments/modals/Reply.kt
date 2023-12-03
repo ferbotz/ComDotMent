@@ -1,6 +1,6 @@
 package com.ferbotz.comments.modals
 
-sealed class Reply(open val commentId: String, open val replyId: String, open val postId: String, open val user: UserProfile, open val likes: Int, open val isCurrentUserLiked: Boolean){
+sealed class Reply(open val commentId: String, open val replyId: String, open val postId: String, open val user: UserProfile, open var likes: Int, open var isCurrentUserLiked: Boolean){
 
     data class TextReply(
         override val commentId: String,
@@ -8,8 +8,8 @@ sealed class Reply(open val commentId: String, open val replyId: String, open va
         override val postId: String,
         override val user: UserProfile,
         val replyText: String,
-        override val likes: Int = 0,
-        override val isCurrentUserLiked: Boolean = false,
+        override var likes: Int = 0,
+        override var isCurrentUserLiked: Boolean = false,
         val extraParams: Any? = null
     ):Reply(commentId, replyId, postId, user, likes, isCurrentUserLiked)
 
@@ -19,8 +19,8 @@ sealed class Reply(open val commentId: String, open val replyId: String, open va
         override val postId: String,
         override val user: UserProfile,
         val replyGifUrl: String,
-        override val likes: Int = 0,
-        override val isCurrentUserLiked: Boolean = false,
+        override var likes: Int = 0,
+        override var isCurrentUserLiked: Boolean = false,
         val extraParams: Any? = null
     ):Reply(commentId, replyId, postId, user, likes, isCurrentUserLiked)
 

@@ -7,34 +7,34 @@ sealed class CommentsAdapterViewHolderDataTypes{
     data class CommentView(val commentData: Comment):CommentsAdapterViewHolderDataTypes()
 }
 
-sealed class Comment(open val commentId: String, open val postId: String, open val user: UserProfile, open val replies: List<Reply>, open val likes: Int, open val timestamp: String, open var totalRepliesCount: Int, open val isCurrentUserLiked: Boolean, open val isPinned: Boolean, open val isUploading: Boolean){
+sealed class Comment(open val commentId: String, open val postId: String, open val user: UserProfile, open var replies: MutableList<Reply>, open var likes: Int, open val timestamp: String, open var totalRepliesCount: Int, open var isCurrentUserLiked: Boolean, open val isPinned: Boolean, open val isUploading: Boolean){
 
+//    abstract fun <T> dataCopy(comment:T): T
     data class TextComment(
         override val commentId: String,
         override val postId: String,
         override val user: UserProfile,
         val commentText: String,
-        override val likes: Int = 0,
+        override var likes: Int = 0,
         override var totalRepliesCount: Int = 0,
-        override val replies: List<Reply> = emptyList(),
+        override var replies: MutableList<Reply> = emptyList(),
         override val timestamp: String,
-        override val isCurrentUserLiked: Boolean = false,
+        override var isCurrentUserLiked: Boolean = false,
         override val isPinned: Boolean = false,
         override val isUploading: Boolean = false,
         val extraParams: Any? = null
     ):Comment(commentId, postId, user, replies, likes, timestamp, totalRepliesCount, isCurrentUserLiked, isPinned, isUploading)
-
 
     data class GifComment(
         override val commentId: String,
         override val postId: String,
         override val user: UserProfile,
         val gifUrl: String,
-        override val likes: Int = 0,
+        override var likes: Int = 0,
         override var totalRepliesCount: Int = 0,
-        override val replies: List<Reply> = emptyList(),
+        override var replies: MutableList<Reply> = emptyList(),
         override val timestamp: String,
-        override val isCurrentUserLiked: Boolean = false,
+        override var isCurrentUserLiked: Boolean = false,
         override val isPinned: Boolean = false,
         override val isUploading: Boolean = false,
         val extraParams: Any? = null

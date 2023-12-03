@@ -8,13 +8,15 @@ import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import com.ferbotz.comments.databinding.EmptyVhBinding
+import com.ferbotz.comments.databinding.GifCommentLayoutBinding
+import com.ferbotz.comments.databinding.TextCommentLayoutBinding
+import com.ferbotz.comments.interfaces.DefaultCommentViewOverridingListener
 import com.ferbotz.comments.interfaces.EmptyViewHolderBindListener
 import com.ferbotz.comments.interfaces.EssentialCommentActionListener
 import com.ferbotz.comments.modals.*
 import com.ferbotz.comments.ui.CommentsBottomSheet
 import com.ferbotz.comments.utils.ScreenUtils.logVasi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -79,7 +81,7 @@ class MainActivity : AppCompatActivity() {
                     UserProfile("user1", userName = "vasi"),
                     postId = "12345",
                     eActListener
-                ).addEmptyViewsWithOffset(2,
+                ).addEmptyViewsWithOffset({ it % 2 == 0 },
                     object : EmptyViewHolderBindListener {
                         override fun emptyViewHolderBind(
                             emptyViewHolderData: Any?,
@@ -96,39 +98,11 @@ class MainActivity : AppCompatActivity() {
                     }
                 ).build()
             )
-//                .CommentBottomSheetBuilder(UserProfile("user1", userName = "vasi"), postId = "12345")
-//                .addEmptyViewsWithOffset(2,
-//                    object : EmptyViewHolderBindListener {
-//                        override fun emptyViewHolderBind(
-//                            emptyViewHolderData: Any?,
-//                            emptyView: EmptyVhBinding,
-//                            position: Int
-//                        ) {
-//                            emptyView.emptyRoot.background = ColorDrawable(Color.parseColor("#00FF00"))
-//                            emptyView.emptyRoot.setOnClickListener {
-//                                emptyView.emptyRoot.background = ColorDrawable(Color.parseColor("#FF6600"))
-//                                Toast.makeText(this@MainActivity, "empty view clicked", Toast.LENGTH_SHORT).show()
-//                            }
-//                        }
-//                    }
-//                )
-//                .modifyDefaultCommentsView(object : DefaultCommentViewOverridingListener{
-//                    override fun defaultTextCommentView(
-//                        textComment: Comment.TextComment,
-//                        binding: TextCommentLayoutBinding,
-//                        position: Int
-//                    ) {
-//                    }
-//
-//                    override fun defaultGifCommentView(
-//                        gifComment: Comment.GifComment,
-//                        binding: GifCommentLayoutBinding,
-//                        position: Int
-//                    ) {
-//
-//                    }
-//                }).build()
             btmSheet.show(supportFragmentManager, "comments")
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
     }
 }

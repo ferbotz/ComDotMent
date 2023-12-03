@@ -23,6 +23,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.bumptech.glide.Glide.init
 import com.ferbotz.comments.R
+import com.ferbotz.comments.data.CommentsRepository
 import com.ferbotz.comments.databinding.CommentsViewLayoutBinding
 import com.ferbotz.comments.interfaces.DefaultCommentViewOverridingListener
 import com.ferbotz.comments.interfaces.EmptyViewHolderBindListener
@@ -32,6 +33,7 @@ import com.ferbotz.comments.ui.CommentsBottomSheet
 import com.ferbotz.comments.ui.CommentsFragment
 import com.ferbotz.comments.viewmodals.CommentViewModelFactory
 import com.ferbotz.comments.viewmodals.CommentsViewModel
+import com.ferbotz.comments.viewmodals.chuma
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 class CommentsView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs) {
@@ -40,6 +42,8 @@ class CommentsView(context: Context, attrs: AttributeSet) : ConstraintLayout(con
     val binding get() = _binding!!
     lateinit var navController: NavController
     lateinit var commentsViewModel: CommentsViewModel
+    lateinit var commentsRepository: CommentsRepository
+
 
 
     init {
@@ -48,14 +52,13 @@ class CommentsView(context: Context, attrs: AttributeSet) : ConstraintLayout(con
 
 
     fun buildCommentsView(activity: FragmentActivity, commentsViewAttribute: CommentsViewAttribute , childFragmentManager: FragmentManager){
-        commentsViewModel = ViewModelProvider(activity, CommentViewModelFactory())[CommentsViewModel::class.java]
-        commentsViewModel.commentsViewAttribute = commentsViewAttribute
+        commentsRepository = CommentsRepository(commentsViewAttribute)
+        chuma.repo = commentsRepository
+//        commentsViewModel = ViewModelProvider(activity, CommentViewModelFactory())[CommentsViewModel::class.java]
         _binding =  CommentsViewLayoutBinding.inflate(LayoutInflater.from(context), this, true)
         val fragmentTransaction = childFragmentManager.beginTransaction()
         val fragment = CommentsFragment()
         fragmentTransaction.replace(R.id.fragmentContainer, fragment)
         fragmentTransaction.commit()
-
     }
-
 }
