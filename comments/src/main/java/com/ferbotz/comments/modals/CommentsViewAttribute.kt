@@ -11,6 +11,11 @@ data class CommentsViewAttribute internal constructor(val userProfile: UserProfi
         var emptyViewCondition: ((Int)-> Boolean)? = null
         var emptyViewBindListener: EmptyViewHolderBindListener? = null
         var defaultCommentViewOverridingListener: DefaultCommentViewOverridingListener? = null
+        var commentsPagingConfig: CommentsPagingConfig? = null
+
+        fun enableCommentsPaging(commentsPagingConfig: CommentsPagingConfig)= apply{
+            this.commentsPagingConfig = commentsPagingConfig
+        }
 
         fun addEmptyViewsWithOffset(condition: ((Int)-> Boolean), listener: EmptyViewHolderBindListener) = apply{
             this.emptyViewCondition = condition

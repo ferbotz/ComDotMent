@@ -11,6 +11,7 @@ import com.ferbotz.comments.R
 import com.ferbotz.comments.adapters.ReplyRecyclerViewAdapter
 import com.ferbotz.comments.databinding.EmptyVhBinding
 import com.ferbotz.comments.databinding.GifCommentLayoutBinding
+import com.ferbotz.comments.databinding.LoadingFooterVhBinding
 import com.ferbotz.comments.databinding.TextCommentLayoutBinding
 import com.ferbotz.comments.modals.Comment
 import com.ferbotz.comments.modals.UserActionData
@@ -134,4 +135,6 @@ class GifCommentViewHolder(val binding: GifCommentLayoutBinding, val userAction:
 
 
 class EmptyViewHolder(val binding: EmptyVhBinding): RecyclerView.ViewHolder(binding.root) {}
+
+class LoadingFooterViewHolder(val binding: LoadingFooterVhBinding): RecyclerView.ViewHolder(binding.root) {}
 

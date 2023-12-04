@@ -7,15 +7,18 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.ferbotz.comments.databinding.EmptyVhBinding
 import com.ferbotz.comments.databinding.GifCommentLayoutBinding
+import com.ferbotz.comments.databinding.LoadingFooterVhBinding
 import com.ferbotz.comments.databinding.TextCommentLayoutBinding
 import com.ferbotz.comments.interfaces.DefaultCommentViewOverridingListener
 import com.ferbotz.comments.modals.Comment
 import com.ferbotz.comments.modals.CommentsAdapterViewHolderDataTypes
+import com.ferbotz.comments.modals.CommentsPagingConfig
 import com.ferbotz.comments.modals.UserActionData
 import com.ferbotz.comments.utils.JsonUtils
 import com.ferbotz.comments.utils.ScreenUtils.logVasi
 import com.ferbotz.comments.viewholder.EmptyViewHolder
 import com.ferbotz.comments.viewholder.GifCommentViewHolder
+import com.ferbotz.comments.viewholder.LoadingFooterViewHolder
 import com.ferbotz.comments.viewholder.TextCommentViewHolder
 
 class CommentsRecyclerViewAdapter(val userAction:(UserActionData) -> Unit): ListAdapter<CommentsAdapterViewHolderDataTypes, RecyclerView.ViewHolder>(CommentsDiffUtil()) {
@@ -23,6 +26,8 @@ class CommentsRecyclerViewAdapter(val userAction:(UserActionData) -> Unit): List
     private var emptyViewHolderBindFunction:((emptyViewHolderData: Any?, emptyView:EmptyVhBinding, position:Int ) -> Unit)? = null
 
     private var defaultCommentViewHolderModifyFunctions: DefaultCommentViewOverridingListener? = null
+
+    var pagingDetails :CommentsPagingConfig? = null
 
     fun setEmptyViewHolderBinding(emptyViewHolderBind:(emptyViewHolderData: Any?, emptyView:EmptyVhBinding, position:Int ) -> Unit){
         emptyViewHolderBindFunction = emptyViewHolderBind
@@ -48,6 +53,7 @@ class CommentsRecyclerViewAdapter(val userAction:(UserActionData) -> Unit): List
             is CommentsAdapterViewHolderDataTypes.EmptyView -> {
                 0
             }
+            CommentsAdapterViewHolderDataTypes.LoadingFooter -> -1
         }
     }
 
@@ -61,6 +67,9 @@ class CommentsRecyclerViewAdapter(val userAction:(UserActionData) -> Unit): List
             }
             2 ->{
                 GifCommentViewHolder( GifCommentLayoutBinding.inflate(LayoutInflater.from(parent.context), parent, false), userAction)
+            }
+            -1 ->{
+                LoadingFooterViewHolder(LoadingFooterVhBinding.inflate(LayoutInflater.from(parent.context), parent, false))
             }
             else -> {
                 TextCommentViewHolder( TextCommentLayoutBinding.inflate(LayoutInflater.from(parent.context)), userAction)
@@ -108,6 +117,19 @@ class CommentsRecyclerViewAdapter(val userAction:(UserActionData) -> Unit): List
                     )
                 }
             }
+            -1 ->{
+                pagingDetails?.let { commentsPagingConfig ->
+                    commentsPagingConfig.pagingContentSource.loadingFooterBind((holder as LoadingFooterViewHolder).binding)
+                }
+            }
+        }
+        pagingDetails?.let { pagingConfig ->
+            if (position >= ((this.currentList.size - 1) - pagingConfig.preLoadPositionOffset)){
+                "load next page called".logVasi()
+                userAction(UserActionData.LoadNextPageComments)
+            }
+        } ?: run{
+            "paging config not found".logVasi()
         }
     }
 }
@@ -123,6 +145,7 @@ class CommentsDiffUtil: DiffUtil.ItemCallback<CommentsAdapterViewHolderDataTypes
                     is CommentsAdapterViewHolderDataTypes.CommentView->{
                         false
                     }
+                    CommentsAdapterViewHolderDataTypes.LoadingFooter -> false
                 }
             }
             is CommentsAdapterViewHolderDataTypes.CommentView ->{
@@ -142,6 +165,9 @@ class CommentsDiffUtil: DiffUtil.ItemCallback<CommentsAdapterViewHolderDataTypes
                                     }
                                 }
                             }
+                            CommentsAdapterViewHolderDataTypes.LoadingFooter -> {
+                                false
+                            }
                         }
                     }
                     is Comment.GifComment -> {
@@ -159,9 +185,22 @@ class CommentsDiffUtil: DiffUtil.ItemCallback<CommentsAdapterViewHolderDataTypes
                                     }
                                 }
                             }
+                            CommentsAdapterViewHolderDataTypes.LoadingFooter -> false
                         }
                     }
                 }
+            }
+            CommentsAdapterViewHolderDataTypes.LoadingFooter -> {
+                when(newItem){
+                    is CommentsAdapterViewHolderDataTypes.EmptyView ->{
+                        false
+                    }
+                    is CommentsAdapterViewHolderDataTypes.CommentView->{
+                        false
+                    }
+                    CommentsAdapterViewHolderDataTypes.LoadingFooter -> oldItem.hashCode() == newItem.hashCode()
+                }
+
             }
         }
     }
@@ -176,6 +215,7 @@ class CommentsDiffUtil: DiffUtil.ItemCallback<CommentsAdapterViewHolderDataTypes
                     is CommentsAdapterViewHolderDataTypes.CommentView -> {
                         false
                     }
+                    CommentsAdapterViewHolderDataTypes.LoadingFooter -> false
                 }
             }
             is CommentsAdapterViewHolderDataTypes.CommentView -> {
@@ -189,7 +229,6 @@ class CommentsDiffUtil: DiffUtil.ItemCallback<CommentsAdapterViewHolderDataTypes
                                 when (newItem.commentData) {
                                     is Comment.TextComment -> {
 //                                        oldItem.hashCode() == newItem.hashCode()
-                                        "diff util...${oldItem.hashCode()}...${newItem.hashCode()}".logVasi()
                                         oldItem.commentData.commentId == newItem.commentData.commentId && oldItem.commentData.totalRepliesCount == newItem.commentData.totalRepliesCount && oldItem.commentData.replies.size == newItem.commentData.replies.size
                                     }
                                     is Comment.GifComment -> {
@@ -197,6 +236,7 @@ class CommentsDiffUtil: DiffUtil.ItemCallback<CommentsAdapterViewHolderDataTypes
                                     }
                                 }
                             }
+                            CommentsAdapterViewHolderDataTypes.LoadingFooter -> false
                         }
                     }
                     is Comment.GifComment -> {
@@ -214,8 +254,20 @@ class CommentsDiffUtil: DiffUtil.ItemCallback<CommentsAdapterViewHolderDataTypes
                                     }
                                 }
                             }
+                            CommentsAdapterViewHolderDataTypes.LoadingFooter -> false
                         }
                     }
+                }
+            }
+            CommentsAdapterViewHolderDataTypes.LoadingFooter -> {
+                when (newItem) {
+                    is CommentsAdapterViewHolderDataTypes.EmptyView -> {
+                        false
+                    }
+                    is CommentsAdapterViewHolderDataTypes.CommentView -> {
+                        false
+                    }
+                    CommentsAdapterViewHolderDataTypes.LoadingFooter -> oldItem.hashCode() == newItem.hashCode()
                 }
             }
         }

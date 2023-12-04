@@ -4,19 +4,16 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import com.ferbotz.comments.databinding.EmptyVhBinding
-import com.ferbotz.comments.databinding.GifCommentLayoutBinding
-import com.ferbotz.comments.databinding.TextCommentLayoutBinding
-import com.ferbotz.comments.interfaces.DefaultCommentViewOverridingListener
+import com.ferbotz.comments.databinding.LoadingFooterVhBinding
 import com.ferbotz.comments.interfaces.EmptyViewHolderBindListener
 import com.ferbotz.comments.interfaces.EssentialCommentActionListener
 import com.ferbotz.comments.modals.*
 import com.ferbotz.comments.ui.CommentsBottomSheet
 import com.ferbotz.comments.utils.ScreenUtils.logVasi
-import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -71,8 +68,14 @@ class MainActivity : AppCompatActivity() {
                 ): Reply {
                     return likedReply
                 }
+            }
 
+            val pagingSource = object :CommentsPagingSource{
+                override suspend fun loadNextPageComments(page: Int): Pair<List<Comment>, Boolean> {
+                    return Pair(emptyList(), false)
+                }
 
+                override fun loadingFooterBind(loadingFooter: LoadingFooterVhBinding) {}
             }
 
 
@@ -96,7 +99,7 @@ class MainActivity : AppCompatActivity() {
                         }
 
                     }
-                ).build()
+                ).enableCommentsPaging(CommentsPagingConfig(0, pagingSource)).build()
             )
             btmSheet.show(supportFragmentManager, "comments")
         }

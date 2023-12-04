@@ -56,4 +56,5 @@ dependencies {
 
     implementation "androidx.lifecycle:lifecycle-viewmodel:2.5.0"
     implementation "androidx.lifecycle:lifecycle-livedata:2.5.0"
+
 }

@@ -66,6 +66,13 @@ class CommentsViewModel(private val commentsRepository: CommentsRepository):View
         }
     }
 
+    fun requestNextPageComments(){
+        viewModelScope.launch {
+            commentsRepository.requestNextPageComment()
+        }
+    }
+
+
     fun buildTextReply(replyText: String, commentId: String, userProfile: UserProfile, postId: String): Reply.TextReply{
         return Reply.TextReply(
             commentId = commentId,
@@ -119,6 +126,7 @@ class CommentsViewModel(private val commentsRepository: CommentsRepository):View
     }
 
 }
+
 
 
 class CommentViewModelFactory(val commentsRepository: CommentsRepository): ViewModelProvider.Factory {

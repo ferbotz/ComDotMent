@@ -1,22 +1,33 @@
 package com.ferbotz.comments.data
 
+import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.ferbotz.comments.interfaces.EssentialCommentActionListener
 import com.ferbotz.comments.modals.*
 import com.ferbotz.comments.utils.ScreenUtils.logVasi
-import kotlinx.coroutines.Dispatchers
+import com.ferbotz.comments.utils.Utils
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.replay
 import java.util.*
 
 class CommentsRepository(val commentsViewAttribute: CommentsViewAttribute) {
 
-    val commentsDataList: MutableSharedFlow<List<CommentsAdapterViewHolderDataTypes>> = MutableSharedFlow()
+    val commentsDataList: MutableSharedFlow<List<CommentsAdapterViewHolderDataTypes>> = MutableSharedFlow( replay = 1 )
 
     val commentsList: MutableList<Comment> = mutableListOf()
 
     private val commentsDataAccessFunctions = CommentsDataAccessFunctions(::getCurrentCommentList, ::setCurrentCommentList)
+
+    private var nextPagingPage = PAGING_INITIAL_PAGE
+
+    var isLastPage = false
+
+    init {
+        MainScope().launch(Dispatchers.IO) {
+            mergeCommentsAndEmptyCustomViewsAndUpdate()
+        }
+    }
 
     suspend fun likeComment(comment: Comment, isLiked: Boolean){
         commentsViewAttribute.essentialActionListener.onLikeComment(isLiked, comment, commentsDataAccessFunctions)?.let { comment ->
@@ -46,13 +57,16 @@ class CommentsRepository(val commentsViewAttribute: CommentsViewAttribute) {
         }
     }
 
-    private suspend fun mergeCommentsAndEmptyCustomViewsAndUpdate(){
+    suspend fun mergeCommentsAndEmptyCustomViewsAndUpdate(){
         val commentDataList = mutableListOf<CommentsAdapterViewHolderDataTypes>()
         commentsList.forEachIndexed { index, comment ->
             commentDataList.add(CommentsAdapterViewHolderDataTypes.CommentView(comment))
             commentsViewAttribute.attributeInstructions.emptyViewCondition?.let {emptyViewLambda ->
                 if (emptyViewLambda(index)) commentDataList.add(CommentsAdapterViewHolderDataTypes.EmptyView())
             }
+        }
+        if (commentsViewAttribute.attributeInstructions.commentsPagingConfig != null && !isLastPage){
+            commentDataList.add(CommentsAdapterViewHolderDataTypes.LoadingFooter)
         }
         commentsDataList.emit(commentDataList.toList())
     }
@@ -82,6 +96,46 @@ class CommentsRepository(val commentsViewAttribute: CommentsViewAttribute) {
         mergeCommentsAndEmptyCustomViewsAndUpdate()
     }
 
+    suspend fun requestNextPageComment(){
+        val result = commentsViewAttribute.attributeInstructions.commentsPagingConfig?.let {
+            it.pagingContentSource.loadNextPageComments(nextPagingPage).let{(commentList, mIsLastPage) ->
+                isLastPage = mIsLastPage
+                commentsList.addAll(commentList)
+                mergeCommentsAndEmptyCustomViewsAndUpdate()
+            }
+        }
+        val list = mutableListOf<Comment>()
+        (0..10).forEach {
+            list.add(
+                buildTextComment(
+                    Utils.getRandomTextWithLength(10),
+                    UserProfile(
+                        UUID.randomUUID().toString(),
+                        Utils.getRandomTextWithLength(5)
+                    ),
+                    commentsViewAttribute.postId
+                )
+            )
+        }
+        "load next comments called".logVasi()
+        delay(3000)
+        commentsList.addAll(list.toList())
+        mergeCommentsAndEmptyCustomViewsAndUpdate()
+    }
+
+    fun buildTextComment(commentText: String, userProfile: UserProfile, postId: String): Comment.TextComment{
+        return Comment.TextComment(
+            commentId = getNewCommentId(userProfile.userId),
+            user = userProfile,
+            commentText = commentText,
+            postId = postId,
+            timestamp = System.currentTimeMillis().toString(),
+
+            ).also {
+            Log.v("Vasi testing","new comment...${it}")
+        }
+    }
+
     fun getCurrentCommentList(): List<Comment> = commentsList.toList()
 
     suspend fun setCurrentCommentList(list: List<Comment>){
@@ -108,6 +162,13 @@ class CommentsRepository(val commentsViewAttribute: CommentsViewAttribute) {
             newId = UUID.randomUUID().toString()
         }
         return userId + "_" + newId
+    }
+
+
+    companion object{
+
+        const val PAGING_INITIAL_PAGE = 1
+
     }
 
 }

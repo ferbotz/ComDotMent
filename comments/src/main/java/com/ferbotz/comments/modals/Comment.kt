@@ -5,6 +5,7 @@ import java.util.Collections.emptyList
 sealed class CommentsAdapterViewHolderDataTypes{
     data class EmptyView(val emptyViewData: Any? = null):CommentsAdapterViewHolderDataTypes()
     data class CommentView(val commentData: Comment):CommentsAdapterViewHolderDataTypes()
+    object LoadingFooter: CommentsAdapterViewHolderDataTypes()
 }
 
 sealed class Comment(open val commentId: String, open val postId: String, open val user: UserProfile, open var replies: MutableList<Reply>, open var likes: Int, open val timestamp: String, open var totalRepliesCount: Int, open var isCurrentUserLiked: Boolean, open val isPinned: Boolean, open val isUploading: Boolean){

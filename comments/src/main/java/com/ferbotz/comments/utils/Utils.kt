@@ -1,5 +1,7 @@
 package com.ferbotz.comments.utils
 
+import kotlin.random.Random
+
 object Utils {
 
     fun formatTime(milliseconds: Long): String {
@@ -13,6 +15,14 @@ object Utils {
             seconds < 86400 -> "${seconds / 3600} h"
             else -> "${seconds / 86400} d"
         }
+    }
+
+    fun getRandomTextWithLength(length: Int): String {
+        val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9') // You can customize the character pool
+
+        return (1..length)
+            .map { charPool[Random.nextInt(0, charPool.size)] }
+            .joinToString("")
     }
 
 }

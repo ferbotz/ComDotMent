@@ -8,4 +8,6 @@ sealed class UserActionData{
 
     data class LikeReplyActionData(val isLiked: Boolean, val reply: Reply): UserActionData()
 
+    object LoadNextPageComments:UserActionData()
+
 }

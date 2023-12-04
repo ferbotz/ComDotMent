@@ -4,7 +4,6 @@ import android.animation.Animator
 import android.content.ClipData
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -12,12 +11,10 @@ import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.ferbotz.comments.adapters.CommentsRecyclerViewAdapter
-import com.ferbotz.comments.custom_views.CommentsView
 import com.ferbotz.comments.databinding.FragmentCommentsBinding
 import com.ferbotz.comments.modals.UserActionData
 import com.ferbotz.comments.utils.ScreenUtils
@@ -37,8 +34,8 @@ class CommentsFragment : Fragment() {
     val MIME_TYPES = arrayOf("image/*", "video/*")
 
     private val commentsAdapter: CommentsRecyclerViewAdapter = CommentsRecyclerViewAdapter(
-        userAction = {userActionData ->
-            when(userActionData){
+        userAction = { userActionData ->
+            when (userActionData) {
                 is UserActionData.ReplyActionData -> {
                     commentsViewModel.focusedCommentId = userActionData.commentId
                     commentsViewModel.isComment = false
@@ -60,6 +57,9 @@ class CommentsFragment : Fragment() {
                         reply = userActionData.reply
                     )
                 }
+                UserActionData.LoadNextPageComments -> {
+                    commentsViewModel.requestNextPageComments()
+                }
             }
         }
     )
@@ -73,46 +73,24 @@ class CommentsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentCommentsBinding.inflate(inflater, container, false)
-        commentsViewModel = ViewModelProvider(requireActivity(), CommentViewModelFactory( chuma.repo!! ))[CommentsViewModel::class.java]
-        ViewCompat.setOnReceiveContentListener(
-            binding.commentEt,
-            MIME_TYPES
-        ) { view, payload ->
-            val split = payload.partition { item: ClipData.Item -> item.uri != null }
-            val remaining = split.second
-            val clipData: ClipData = payload.clip
-            if (clipData.itemCount > 0) {
-                val item = clipData.getItemAt(0)
-                val contentUri: Uri = item.uri
-                if (commentsViewModel.isComment){
-                    commentsViewModel.addNewComment(commentsViewModel.buildGifComment(contentUri.toString(), commentsViewModel.commentsViewAttribute.userProfile, commentsViewModel.commentsViewAttribute.postId))
-                }
-                else{
-                    commentsViewModel.focusedCommentId?.let {
-                        commentsViewModel.addNewReply(commentsViewModel.buildGifReply(contentUri.toString(), it, commentsViewModel.commentsViewAttribute.userProfile, commentsViewModel.commentsViewAttribute.postId))
-                        commentsViewModel.removeReplyFocus()
-                        hideReplyingToTab()
-                    }
-                }
-                ScreenUtils.hideSoftKeyboard(requireActivity(), binding.commentEt)
-                binding.commentEt.text!!.clear()
-                binding.commentEt.clearFocus()
-            }
-            remaining
-        }
+        commentsViewModel = ViewModelProvider(
+            requireActivity(),
+            CommentViewModelFactory(chuma.repo!!)
+        )[CommentsViewModel::class.java]
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initComponents()
+        handleReceiveGifs()
     }
 
-    fun initComponents(){
+    fun initComponents() {
         binding.apply {
             commentsRecyclerView.adapter = commentsAdapter
             commentsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-            commentsViewModel.commentsViewAttribute.attributeInstructions.emptyViewBindListener?.let {listener->
+            commentsViewModel.commentsViewAttribute.attributeInstructions.emptyViewBindListener?.let { listener ->
                 commentsAdapter.setEmptyViewHolderBinding { emptyViewHolderData, emptyView, position ->
                     listener.emptyViewHolderBind(
                         emptyViewHolderData,
@@ -125,18 +103,19 @@ class CommentsFragment : Fragment() {
                 commentsAdapter.setDefaultCommentViewHolderModifyFunctions(listener)
             }
 
-            val itemTouchHelper = ItemTouchHelper(SwipeItemViewHelper(commentsAdapter, commentsRecyclerView))
+            val itemTouchHelper =
+                ItemTouchHelper(SwipeItemViewHelper(commentsAdapter, commentsRecyclerView))
             itemTouchHelper.attachToRecyclerView(commentsRecyclerView)
 
             lifecycleScope.launchWhenResumed {
-                commentsViewModel.commentDataList.collect{
+                commentsViewModel.commentDataList.collect {
                     "new comments list submitted".logVasi()
                     commentsAdapter.submitList(it)
                 }
             }
 
             commentEt.setOnFocusChangeListener { _, hasFocus ->
-                if (!hasFocus){
+                if (!hasFocus) {
                     commentsViewModel.removeReplyFocus()
                     hideReplyingToTab()
                     binding.commentEt.text?.clear()
@@ -144,13 +123,25 @@ class CommentsFragment : Fragment() {
             }
 
             sendBtn.setOnClickListener {
-                if(!binding.commentEt.text.isNullOrBlank()){
-                    if (commentsViewModel.isComment){
-                        commentsViewModel.addNewComment(commentsViewModel.buildTextComment(binding.commentEt.text.toString(), commentsViewModel.commentsViewAttribute.userProfile, commentsViewModel.commentsViewAttribute.postId))
-                    }
-                    else{
+                if (!binding.commentEt.text.isNullOrBlank()) {
+                    if (commentsViewModel.isComment) {
+                        commentsViewModel.addNewComment(
+                            commentsViewModel.buildTextComment(
+                                binding.commentEt.text.toString(),
+                                commentsViewModel.commentsViewAttribute.userProfile,
+                                commentsViewModel.commentsViewAttribute.postId
+                            )
+                        )
+                    } else {
                         commentsViewModel.focusedCommentId?.let {
-                            commentsViewModel.addNewReply(commentsViewModel.buildTextReply(binding.commentEt.text.toString(), it, commentsViewModel.commentsViewAttribute.userProfile, commentsViewModel.commentsViewAttribute.postId))
+                            commentsViewModel.addNewReply(
+                                commentsViewModel.buildTextReply(
+                                    binding.commentEt.text.toString(),
+                                    it,
+                                    commentsViewModel.commentsViewAttribute.userProfile,
+                                    commentsViewModel.commentsViewAttribute.postId
+                                )
+                            )
                             commentsViewModel.removeReplyFocus()
                             hideReplyingToTab()
                         }
@@ -168,15 +159,20 @@ class CommentsFragment : Fragment() {
                 hideReplyingToTab()
             }
 
-            binding.commentsRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            binding.commentsRecyclerView.addOnScrollListener(object :
+                RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
                 }
             })
+
+            commentsViewModel.commentsViewAttribute.attributeInstructions.commentsPagingConfig?.let {
+                commentsAdapter.pagingDetails = it
+            }
         }
     }
 
-    private fun showReplyingToTab(replyToUserName: String){
+    private fun showReplyingToTab(replyToUserName: String) {
         binding.replyToTv.text = "Replying To: @${replyToUserName}"
         binding.replyingToLay.apply {
             visibility = View.VISIBLE
@@ -185,7 +181,7 @@ class CommentsFragment : Fragment() {
                 .translationY(0F)
                 .setDuration(400)
                 .setListener(
-                    object: Animator.AnimatorListener {
+                    object : Animator.AnimatorListener {
                         override fun onAnimationStart(animation: Animator) {
 
                         }
@@ -205,15 +201,14 @@ class CommentsFragment : Fragment() {
     }
 
 
-    private fun hideReplyingToTab(){
+    private fun hideReplyingToTab() {
         binding.replyingToLay.apply {
             animate()
                 .translationY(this.height.toFloat())
                 .setDuration(400)
                 .setListener(
-                    object: Animator.AnimatorListener {
+                    object : Animator.AnimatorListener {
                         override fun onAnimationStart(animation: Animator) {
-
                         }
 
                         override fun onAnimationEnd(animation: Animator) {
@@ -232,6 +227,44 @@ class CommentsFragment : Fragment() {
     }
 
 
-
-
+    private fun handleReceiveGifs() {
+        ViewCompat.setOnReceiveContentListener(
+            binding.commentEt,
+            MIME_TYPES
+        ) { view, payload ->
+            val split = payload.partition { item: ClipData.Item -> item.uri != null }
+            val remaining = split.second
+            val clipData: ClipData = payload.clip
+            if (clipData.itemCount > 0) {
+                val item = clipData.getItemAt(0)
+                val contentUri: Uri = item.uri
+                if (commentsViewModel.isComment) {
+                    commentsViewModel.addNewComment(
+                        commentsViewModel.buildGifComment(
+                            contentUri.toString(),
+                            commentsViewModel.commentsViewAttribute.userProfile,
+                            commentsViewModel.commentsViewAttribute.postId
+                        )
+                    )
+                } else {
+                    commentsViewModel.focusedCommentId?.let {
+                        commentsViewModel.addNewReply(
+                            commentsViewModel.buildGifReply(
+                                contentUri.toString(),
+                                it,
+                                commentsViewModel.commentsViewAttribute.userProfile,
+                                commentsViewModel.commentsViewAttribute.postId
+                            )
+                        )
+                        commentsViewModel.removeReplyFocus()
+                        hideReplyingToTab()
+                    }
+                }
+                ScreenUtils.hideSoftKeyboard(requireActivity(), binding.commentEt)
+                binding.commentEt.text!!.clear()
+                binding.commentEt.clearFocus()
+            }
+            remaining
+        }
+    }
 }
