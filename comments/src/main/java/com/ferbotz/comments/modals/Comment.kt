@@ -10,7 +10,6 @@ sealed class CommentsAdapterViewHolderDataTypes{
 
 sealed class Comment(open val commentId: String, open val postId: String, open val user: UserProfile, open var replies: MutableList<Reply>, open var likes: Int, open val timestamp: String, open var totalRepliesCount: Int, open var isCurrentUserLiked: Boolean, open val isPinned: Boolean, open val isUploading: Boolean){
 
-//    abstract fun <T> dataCopy(comment:T): T
     data class TextComment(
         override val commentId: String,
         override val postId: String,

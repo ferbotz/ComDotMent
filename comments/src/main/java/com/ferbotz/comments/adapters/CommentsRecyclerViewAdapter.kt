@@ -29,6 +29,8 @@ class CommentsRecyclerViewAdapter(val userAction:(UserActionData) -> Unit): List
 
     var pagingDetails :CommentsPagingConfig? = null
 
+    var isFirstTime = true
+
     fun setEmptyViewHolderBinding(emptyViewHolderBind:(emptyViewHolderData: Any?, emptyView:EmptyVhBinding, position:Int ) -> Unit){
         emptyViewHolderBindFunction = emptyViewHolderBind
     }

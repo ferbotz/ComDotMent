@@ -6,12 +6,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.ferbotz.comments.R
 import com.ferbotz.comments.adapters.ReplyRecyclerViewAdapter
-import com.ferbotz.comments.databinding.GifCommentLayoutBinding
-import com.ferbotz.comments.databinding.GifReplyLayoutBinding
-import com.ferbotz.comments.databinding.TextCommentLayoutBinding
-import com.ferbotz.comments.databinding.TextReplyLayoutBinding
+import com.ferbotz.comments.databinding.*
 import com.ferbotz.comments.modals.Comment
 import com.ferbotz.comments.modals.Reply
+import com.ferbotz.comments.modals.ReplyAdapterViewType
 import com.ferbotz.comments.modals.UserActionData
 import com.ferbotz.comments.utils.ScreenUtils.logVasi
 import com.ferbotz.comments.utils.setOnDoubleClickListener
@@ -103,3 +101,15 @@ class GifReplyViewHolder(val binding: GifReplyLayoutBinding, val userAction:(Use
         }
     }
 }
+
+
+class LoadMoreRepliesViewHolder(val binding: LoadMoreRepliesVhBinding, val userAction:(UserActionData) -> Unit): RecyclerView.ViewHolder(binding.root) {
+
+    fun bindViews(loadMoreData: ReplyAdapterViewType.LoadMoreView) {
+        binding.apply {
+            viewRepliesTv.text = "View more ${loadMoreData.repliesBetweenCount} replies"
+        }
+    }
+}
+
+
